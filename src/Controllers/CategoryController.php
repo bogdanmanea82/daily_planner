@@ -1,55 +1,62 @@
-// src/Controllers/CategoryController.php
 <?php
+// /src/Controllers/CategoryController.php
+require_once __DIR__ . '/../Services/CategoryService.php';
+
 class CategoryController {
     private $categoryService;
-    
-    public function __construct(CategoryService $categoryService) {
-        $this->categoryService = $categoryService;
+
+    public function __construct() {
+        $this->categoryService = new CategoryService();
     }
-    
+
     public function index() {
         $categories = $this->categoryService->getAllCategories();
-        include ROOT_PATH . '/views/categories/index.php';
+        include __DIR__ . '/../../views/categories/index.php';
     }
-    
+
     public function add() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            try {
-                $categoryId = $this->categoryService->createCategory($_POST);
-                header("Location: /categories.php?success=created");
-                exit;
-            } catch (ValidationException $e) {
-                $errors = $e->getErrors();
-                include ROOT_PATH . '/views/categories/add.php';
-            }
-        } else {
-            include ROOT_PATH . '/views/categories/add.php';
-        }
-    }
-    
-    public function edit($id) {
-        try {
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $this->categoryService->updateCategory($id, $_POST);
-                header("Location: /categories.php?success=updated");
+            $name = $_POST['name'] ?? '';
+            $color = $_POST['color'] ?? '';
+            $result = $this->categoryService->addCategory($name, $color);
+            if ($result === true) {
+                header('Location: categories.php');
                 exit;
             } else {
-                $category = $this->categoryService->getCategory($id);
-                include ROOT_PATH . '/views/categories/edit.php';
+                $errors = $result;
             }
-        } catch (NotFoundException $e) {
-            header("Location: /categories.php?error=not_found");
-            exit;
         }
+        include __DIR__ . '/../../views/categories/add.php';
     }
-    
-    public function delete($id) {
-        try {
-            $this->categoryService->deleteCategory($id);
-            header("Location: /categories.php?success=deleted");
-        } catch (Exception $e) {
-            header("Location: /categories.php?error=delete_failed");
+
+    public function edit() {
+        $id = $_GET['id'] ?? null;
+        $category = $this->categoryService->getCategory($id);
+        if (!$category) {
+            die("Category not found");
         }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $name = $_POST['name'] ?? '';
+            $color = $_POST['color'] ?? '';
+            $result = $this->categoryService->updateCategory($id, $name, $color);
+            if ($result === true) {
+                header('Location: categories.php');
+                exit;
+            } else {
+                $errors = $result;
+            }
+        }
+        include __DIR__ . '/../../views/categories/edit.php';
+    }
+
+    // Renamed "delete" method to "remove"
+    public function remove() {
+        $id = $_GET['id'] ?? null;
+        if ($id) {
+            $this->categoryService->deleteCategory($id);
+        }
+        header('Location: categories.php');
         exit;
     }
 }
+?>

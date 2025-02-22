@@ -1,29 +1,23 @@
-// src/Models/Category.php
 <?php
+// /src/Models/Category.php
+require_once 'BaseModel.php';
+
 class Category extends BaseModel {
-    public function __construct(array $data = []) {
-        $this->data = [
-            'category_id' => null,
-            'name' => '',
-            'description' => '',
-            'color' => '#000000'
-        ];
-        
-        foreach ($data as $key => $value) {
-            if (array_key_exists($key, $this->data)) {
-                $this->data[$key] = $value;
-            }
-        }
+    public $name;
+    public $color;
+
+    public function __construct($id = null, $name = '', $color = '') {
+        $this->id = $id;
+        $this->name = $name;
+        $this->color = $color;
     }
 
     public function validate() {
         $errors = [];
-        if (empty($this->data['name'])) {
-            $errors[] = "Category name is required";
-        }
-        if (!empty($this->data['color']) && !preg_match('/^#[a-fA-F0-9]{6}$/', $this->data['color'])) {
-            $errors[] = "Invalid color format. Use hex format (e.g., #FF0000)";
+        if(empty($this->name)) {
+            $errors[] = 'Category name is required.';
         }
         return $errors;
     }
 }
+?>

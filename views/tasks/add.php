@@ -1,44 +1,54 @@
-<!-- views/tasks/add.php -->
-<?php include 'views/header.php'; ?>
-
-<div class="container">
-    <h1>Add New Task</h1>
-    
-    <?php if (isset($errors)): ?>
-        <div class="alert alert-danger">
-            <ul>
-                <?php foreach ($errors as $error): ?>
-                    <li><?= htmlspecialchars($error) ?></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Task</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <h1>Add Task</h1>
+    <?php if(isset($errors) && !empty($errors)): ?>
+        <ul style="color: red;">
+            <?php foreach($errors as $error): ?>
+                <li><?php echo htmlspecialchars($error); ?></li>
+            <?php endforeach; ?>
+        </ul>
     <?php endif; ?>
+    <form method="POST" action="tasks.php?action=add">
+        <label for="title">Title:</label><br>
+        <input type="text" name="title" id="title" required><br><br>
 
-    <form method="POST">
-        <div class="form-group">
-            <label for="title">Title</label>
-            <input type="text" class="form-control" id="title" name="title" value="<?= isset($_POST['title']) ? htmlspecialchars($_POST['title']) : '' ?>">
-        </div>
-        
-        <div class="form-group">
-            <label for="category_id">Category</label>
-            <select class="form-control" id="category_id" name="category_id">
-                <?php foreach ($categories as $category): ?>
-                    <option value="<?= $category->id ?>" <?= (isset($_POST['category_id']) && $_POST['category_id'] == $category->id) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($category->name) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label for="due_date">Due Date</label>
-            <input type="date" class="form-control" id="due_date" name="due_date" value="<?= isset($_POST['due_date']) ? htmlspecialchars($_POST['due_date']) : '' ?>">
-        </div>
+        <label for="description">Description:</label><br>
+        <textarea name="description" id="description"></textarea><br><br>
 
-        <button type="submit" class="btn btn-primary">Create Task</button>
-        <a href="/tasks.php" class="btn btn-secondary">Cancel</a>
+        <label for="due_date">Due Date (YYYY-MM-DD):</label><br>
+        <input type="date" name="due_date" id="due_date"><br><br>
+
+        <label for="status">Status:</label><br>
+        <select name="status" id="status">
+            <option value="pending" selected>Pending</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+        </select><br><br>
+
+        <label for="priority">Priority:</label><br>
+        <select name="priority" id="priority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+        </select><br><br>
+
+        <label for="category_id">Category ID:</label><br>
+        <input type="number" name="category_id" id="category_id"><br><br>
+
+        <label for="is_recurring">Recurring Task:</label>
+        <input type="checkbox" name="is_recurring" id="is_recurring"><br><br>
+
+        <label for="recurring_interval">Recurring Interval (daily, weekly, monthly):</label><br>
+        <input type="text" name="recurring_interval" id="recurring_interval"><br><br>
+
+        <button type="submit">Add Task</button>
     </form>
-</div>
-
-<?php include 'views/footer.php'; ?>
+    <br>
+    <a href="tasks.php">Back to Task List</a>
+</body>
+</html>

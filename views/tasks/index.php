@@ -1,26 +1,56 @@
-<?php require_once '../views/header.php'; ?>
-
-<div class="container">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tasks</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
     <h1>Tasks</h1>
-    <a href="tasks.php?action=create" class="btn btn-primary">Add New Task</a>
-    
-    <div class="tasks-list">
-        <?php foreach ($tasks as $task): ?>
-            <div class="task-item">
-                <h3><?= htmlspecialchars($task->title) ?></h3>
-                <p><?= htmlspecialchars($task->description) ?></p>
-                <div class="task-meta">
-                    <span class="due-date">Due: <?= htmlspecialchars($task->due_date) ?></span>
-                    <span class="category">Category: <?= htmlspecialchars($task->category_name) ?></span>
-                    <span class="status">Status: <?= htmlspecialchars($task->status) ?></span>
-                </div>
-                <div class="task-actions">
-                    <a href="tasks.php?action=edit&id=<?= $task->id ?>" class="btn btn-sm btn-primary">Edit</a>
-                    <a href="tasks.php?action=delete&id=<?= $task->id ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-</div>
-
-<?php require_once '../views/footer.php'; ?>
+    <a href="tasks.php?action=add">Add Task</a>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Category</th>
+                <th>Recurring</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if(!empty($tasks)): ?>
+                <?php foreach($tasks as $task): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($task->title); ?></td>
+                        <td><?php echo htmlspecialchars($task->description); ?></td>
+                        <td><?php echo htmlspecialchars($task->due_date); ?></td>
+                        <td><?php echo htmlspecialchars($task->status); ?></td>
+                        <td><?php echo htmlspecialchars($task->priority); ?></td>
+                        <td><?php echo htmlspecialchars($task->category_id); ?></td>
+                        <td><?php echo $task->is_recurring ? 'Yes (' . htmlspecialchars($task->recurring_interval) . ')' : 'No'; ?></td>
+                        <td>
+                            <a href="tasks.php?action=edit&id=<?php echo $task->getId(); ?>">Edit</a> |
+                            <a href="tasks.php?action=delete&id=<?php echo $task->getId(); ?>" onclick="return confirm('Are you sure you want to delete this task?');">Delete</a> |
+                            <?php if($task->status !== 'completed'): ?>
+                                <a href="tasks.php?action=complete&id=<?php echo $task->getId(); ?>">Mark as Completed</a>
+                            <?php endif; ?>
+                            <?php if($task->is_recurring && $task->status === 'completed'): ?>
+                                | <a href="tasks.php?action=handleRecurring&id=<?php echo $task->getId(); ?>">Handle Recurring</a>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <tr>
+                    <td colspan="8">No tasks found.</td>
+                </tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+    <br>
+    <a href="categories.php">Manage Categories</a>
+</body>
+</html>

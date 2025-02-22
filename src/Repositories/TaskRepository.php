@@ -1,74 +1,70 @@
-// src/Repositories/TaskRepository.php
 <?php
+// /src/Repositories/TaskRepository.php
+
+require_once __DIR__ . '/../../config/Database.php';
+require_once __DIR__ . '/../Models/Task.php';
+
 class TaskRepository {
-    private $db;
-    
-    public function __construct(PDO $db) {
-        $this->db = $db;
+    private $pdo;
+
+    public function __construct() {
+        $this->pdo = Database::getInstance()->getConnection();
     }
 
-    public function findByDate($date) {
-        $sql = "SELECT * FROM tasks WHERE DATE(start_time) = ? ORDER BY start_time";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$date]);
-        
-        $tasks = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $tasks[] = new Task($row);
-        }
-        return $tasks;
+    // Retrieve all tasks
+    public function getAll() {
+        $stmt = $this->pdo->query("SELECT * FROM tasks");
+        $stmt->setFetchMode(PDO::FETCH_CLASS, 'Task');
+        return $stmt->fetchAll();
     }
-    
-    public function countByCategory($categoryId) {
-        $sql = "SELECT COUNT(*) FROM tasks WHERE category_id = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$categoryId]);
-        return $stmt->fetchColumn();
-    }
-    
-    public function countCompletedByDate($date) {
-        $sql = "SELECT COUNT(*) FROM tasks WHERE DATE(start_time) = ? AND status = 'completed'";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$date]);
-        return $stmt->fetchColumn();
-    }
-    
-    public function find($id) {
-        $stmt = $this->db->prepare("SELECT * FROM tasks WHERE task_id = ?");
+
+    // Retrieve a single task by its ID
+    public function getById($id) {
+        $stmt = $this->pdo->prepare("SELECT * FROM tasks WHERE id = ?");
         $stmt->execute([$id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? new Task($result) : null;
+        $stmt->setFetchMode(PDO::FETCH_CLASS, 'Task');
+        return $stmt->fetch();
     }
-    
-    public function save(Task $task) {
-        if ($task->id) {
-            return $this->update($task);
-        }
-        return $this->insert($task);
-    }
-    
-    private function insert(Task $task) {
-        $sql = "INSERT INTO tasks (title, description, category_id, 
-                start_time, end_time, is_recurring, recurrence_pattern, priority) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([
+
+    // Create a new task entry
+    public function create(Task $task) {
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO tasks (title, description, due_date, status, priority, category_id, is_recurring, recurring_interval) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        return $stmt->execute([
             $task->title,
             $task->description,
+            $task->due_date,
+            $task->status,
+            $task->priority,
             $task->category_id,
-            $task->start_time,
-            $task->end_time,
-            $task->is_recurring,
-            $task->recurrence_pattern,
-            $task->priority
+            $task->is_recurring ? 1 : 0,
+            $task->recurring_interval
         ]);
-        
-        return $this->db->lastInsertId();
     }
-    
-    private function update(Task $task) {
-        // Similar to insert but with UPDATE SQL
+
+    // Update an existing task
+    public function update(Task $task) {
+        $stmt = $this->pdo->prepare(
+            "UPDATE tasks SET title = ?, description = ?, due_date = ?, status = ?, priority = ?, category_id = ?, is_recurring = ?, recurring_interval = ? WHERE id = ?"
+        );
+        return $stmt->execute([
+            $task->title,
+            $task->description,
+            $task->due_date,
+            $task->status,
+            $task->priority,
+            $task->category_id,
+            $task->is_recurring ? 1 : 0,
+            $task->recurring_interval,
+            $task->getId()
+        ]);
+    }
+
+    // Delete a task by its ID
+    public function delete($id) {
+        $stmt = $this->pdo->prepare("DELETE FROM tasks WHERE id = ?");
+        return $stmt->execute([$id]);
     }
 }
 ?>

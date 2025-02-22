@@ -1,59 +1,41 @@
-// src/Repositories/CategoryRepository.php
 <?php
+// /src/Repositories/CategoryRepository.php
+require_once __DIR__ . '/../../config/Database.php';
+require_once __DIR__ . '/../Models/Category.php';
+
 class CategoryRepository {
-    private $db;
-    
-    public function __construct(PDO $db) {
-        $this->db = $db;
+    private $pdo;
+
+    public function __construct() {
+        $this->pdo = Database::getInstance()->getConnection();
     }
-    
-    public function findAll() {
-        $stmt = $this->db->query("SELECT * FROM categories ORDER BY name");
-        $categories = [];
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $categories[] = new Category($row);
-        }
-        return $categories;
+
+    public function getAll() {
+        $stmt = $this->pdo->query("SELECT * FROM categories");
+        $stmt->setFetchMode(PDO::FETCH_CLASS, 'Category');
+        return $stmt->fetchAll();
     }
-    
-    public function find($id) {
-        $stmt = $this->db->prepare("SELECT * FROM categories WHERE category_id = ?");
+
+    public function getById($id) {
+        $stmt = $this->pdo->prepare("SELECT * FROM categories WHERE id = ?");
         $stmt->execute([$id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? new Category($result) : null;
+        $stmt->setFetchMode(PDO::FETCH_CLASS, 'Category');
+        return $stmt->fetch();
     }
-    
-    public function save(Category $category) {
-        if ($category->category_id) {
-            return $this->update($category);
-        }
-        return $this->insert($category);
+
+    public function create(Category $category) {
+        $stmt = $this->pdo->prepare("INSERT INTO categories (name, color) VALUES (?, ?)");
+        return $stmt->execute([$category->name, $category->color]);
     }
-    
-    private function insert(Category $category) {
-        $sql = "INSERT INTO categories (name, description, color) VALUES (?, ?, ?)";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([
-            $category->name,
-            $category->description,
-            $category->color
-        ]);
-        return $this->db->lastInsertId();
+
+    public function update(Category $category) {
+        $stmt = $this->pdo->prepare("UPDATE categories SET name = ?, color = ? WHERE id = ?");
+        return $stmt->execute([$category->name, $category->color, $category->getId()]);
     }
-    
-    private function update(Category $category) {
-        $sql = "UPDATE categories SET name = ?, description = ?, color = ? WHERE category_id = ?";
-        $stmt = $this->db->prepare($sql);
-        return $stmt->execute([
-            $category->name,
-            $category->description,
-            $category->color,
-            $category->category_id
-        ]);
-    }
-    
+
     public function delete($id) {
-        $stmt = $this->db->prepare("DELETE FROM categories WHERE category_id = ?");
+        $stmt = $this->pdo->prepare("DELETE FROM categories WHERE id = ?");
         return $stmt->execute([$id]);
     }
 }
+?>

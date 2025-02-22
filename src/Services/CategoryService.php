@@ -1,46 +1,43 @@
-// src/Services/CategoryService.php
 <?php
+// /src/Services/CategoryService.php
+require_once __DIR__ . '/../Repositories/CategoryRepository.php';
+require_once __DIR__ . '/../Models/Category.php';
+
 class CategoryService {
-    private $categoryRepository;
-    
-    public function __construct(CategoryRepository $categoryRepository) {
-        $this->categoryRepository = $categoryRepository;
+    private $categoryRepo;
+
+    public function __construct() {
+        $this->categoryRepo = new CategoryRepository();
     }
-    
-    public function createCategory(array $data) {
-        $category = new Category($data);
-        
-        $errors = $category->validate();
-        if (!empty($errors)) {
-            throw new ValidationException($errors);
-        }
-        
-        return $this->categoryRepository->save($category);
-    }
-    
+
     public function getAllCategories() {
-        return $this->categoryRepository->findAll();
+        return $this->categoryRepo->getAll();
     }
-    
-    public function updateCategory($id, array $data) {
-        $category = $this->categoryRepository->find($id);
-        if (!$category) {
-            throw new NotFoundException("Category not found");
-        }
-        
-        foreach ($data as $key => $value) {
-            $category->$key = $value;
-        }
-        
+
+    public function getCategory($id) {
+        return $this->categoryRepo->getById($id);
+    }
+
+    public function addCategory($name, $color) {
+        $category = new Category(null, $name, $color);
         $errors = $category->validate();
-        if (!empty($errors)) {
-            throw new ValidationException($errors);
+        if(!empty($errors)) {
+            return $errors;
         }
-        
-        return $this->categoryRepository->save($category);
+        return $this->categoryRepo->create($category);
     }
-    
+
+    public function updateCategory($id, $name, $color) {
+        $category = new Category($id, $name, $color);
+        $errors = $category->validate();
+        if(!empty($errors)) {
+            return $errors;
+        }
+        return $this->categoryRepo->update($category);
+    }
+
     public function deleteCategory($id) {
-        return $this->categoryRepository->delete($id);
+        return $this->categoryRepo->delete($id);
     }
 }
+?>

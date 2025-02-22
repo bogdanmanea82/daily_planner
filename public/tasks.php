@@ -1,8 +1,8 @@
 <?php
-// /public/categories.php
-require_once __DIR__ . '/../src/Controllers/CategoryController.php';
+// /public/tasks.php
+require_once __DIR__ . '/../src/Controllers/TaskController.php';
 
-$controller = new CategoryController();
+$controller = new TaskController();
 $action = $_GET['action'] ?? 'index';
 
 switch ($action) {
@@ -14,6 +14,12 @@ switch ($action) {
         break;
     case 'delete':
         $controller->delete();
+        break;
+    case 'complete':
+        $controller->complete();
+        break;
+    case 'handleRecurring':
+        $controller->handleRecurring();
         break;
     default:
         $controller->index();
